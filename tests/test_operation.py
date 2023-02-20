@@ -45,7 +45,7 @@ def test_emergency_exit(
 
 
 def test_profitable_harvest(
-    chain, accounts, token, vault, strategy, user, strategist, amount, RELATIVE_APPROX
+    chain, accounts, token, vault, strategy, user, strategist, amount, whale, RELATIVE_APPROX
 ):
     # Deposit to the vault
     token.approve(vault.address, amount, {"from": user})
@@ -58,16 +58,18 @@ def test_profitable_harvest(
     assert pytest.approx(strategy.estimatedTotalAssets(), rel=RELATIVE_APPROX) == amount
 
     # TODO: Add some code before harvest #2 to simulate earning yield
+    token.transfer(strategy, amount//100, {"from": whale})
 
     # Harvest 2: Realize profit
     chain.sleep(1)
+    before_pps = vault.pricePerShare()
     strategy.harvest()
     chain.sleep(3600 * 6)  # 6 hrs needed for profits to unlock
     chain.mine(1)
     profit = token.balanceOf(vault.address)  # Profits go to vault
     # TODO: Uncomment the lines below
-    # assert token.balanceOf(strategy) + profit > amount
-    # assert vault.pricePerShare() > before_pps
+    assert token.balanceOf(strategy) + profit > amount
+    assert vault.pricePerShare() > before_pps
 
 
 def test_change_debt(
@@ -90,13 +92,13 @@ def test_change_debt(
 
     # In order to pass this tests, you will need to implement prepareReturn.
     # TODO: uncomment the following lines.
-    # vault.updateStrategyDebtRatio(strategy.address, 5_000, {"from": gov})
-    # chain.sleep(1)
-    # strategy.harvest()
-    # assert pytest.approx(strategy.estimatedTotalAssets(), rel=RELATIVE_APPROX) == half
+    vault.updateStrategyDebtRatio(strategy.address, 5_000, {"from": gov})
+    chain.sleep(1)
+    strategy.harvest()
+    assert pytest.approx(strategy.estimatedTotalAssets(), rel=RELATIVE_APPROX) == half
 
 
-def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amount):
+def test_sweep(gov, vault, strategy, token, user, amount):
     # Strategy want token doesn't work
     token.transfer(strategy, amount, {"from": user})
     assert token.address == strategy.want()
@@ -113,12 +115,14 @@ def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amount):
     # with brownie.reverts("!protected"):
     #     strategy.sweep(strategy.protectedToken(), {"from": gov})
 
-    before_balance = weth.balanceOf(gov)
-    weth.transfer(strategy, weth_amount, {"from": user})
-    assert weth.address != strategy.want()
-    assert weth.balanceOf(user) == 0
-    strategy.sweep(weth, {"from": gov})
-    assert weth.balanceOf(gov) == weth_amount + before_balance
+    to_sweep = Contract("0x514910771AF9Ca656af840dff83E8264EcF986CA")
+    whale = "0xF977814e90dA44bFA03b6295A0616a897441aceC"
+    amount = 100 * 10 ** to_sweep.decimals() 
+    before_balance = to_sweep.balanceOf(gov)
+    to_sweep.transfer(strategy, amount, {"from": whale})
+    assert to_sweep.address != strategy.want()
+    strategy.sweep(to_sweep, {"from": gov})
+    assert to_sweep.balanceOf(gov) == amount + before_balance
 
 
 def test_triggers(
