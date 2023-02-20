@@ -13,7 +13,7 @@ contract Strategy is BaseStrategyWrapper {
     using SafeERC20 for ERC20;
 
     constructor(address _asset, address _vault)
-        BaseStrategyWrapper(_asset,  "Strategy Example", "tsSTGY", _vault)
+        BaseStrategyWrapper(_asset, "Strategy Example", "tsSTGY", _vault)
     {}
 
     // NOTE: Should use the 'asset' variable to get the address of the vaults token rather than 'want'
@@ -25,8 +25,12 @@ contract Strategy is BaseStrategyWrapper {
     // @return _invested The actual amount of 'asset' that was invested.
     // NOTE: Should not rely on asset.balanceOf(address(this)) calls other than for diff accounting puroposes
     */
-    function _invest(uint256 _amount) internal override returns (uint256 _invested) {
-        // TODO: implement deposit logice EX: 
+    function _invest(uint256 _amount)
+        internal
+        override
+        returns (uint256 _invested)
+    {
+        // TODO: implement deposit logice EX:
         //
         //      uint256 before = ERC20(asset).balanceOf(address(this));
         //      lendingpool.deposit(asset, _amount ,0);
@@ -42,8 +46,12 @@ contract Strategy is BaseStrategyWrapper {
     // NOTE: Should not rely on asset.balanceOf(address(this)) calls other than for diff accounting puroposes
     // NOTE: The amount of 'asset' that is already loose has already been accounted for
     */
-    function _freeFunds(uint256 _amount) internal override returns (uint256 _freed) {
-        // TODO: implement withdraw logic EX: 
+    function _freeFunds(uint256 _amount)
+        internal
+        override
+        returns (uint256 _freed)
+    {
+        // TODO: implement withdraw logic EX:
         //
         //      uint256 before = ERC20(asset).balanceOf(address(this));
         //      lendingPool.withdraw(asset, _amount);
@@ -73,4 +81,3 @@ contract Strategy is BaseStrategyWrapper {
     // NOTE: Should avoid using `harvestTrigger` if possible, rather adjust maxReportDelay post
     //      deployment for time based harvest cycle
 }
- 

@@ -10,12 +10,16 @@ import {BaseStrategy, StrategyParams} from "@yearnvaults/contracts/BaseStrategy.
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 abstract contract BaseStrategyWrapper is BaseStrategy {
-
     address internal asset;
     string internal _name;
     string public symbol;
 
-    constructor(address _asset, string memory _name_, string memory _symbol, address _vault) BaseStrategy(_vault) {
+    constructor(
+        address _asset,
+        string memory _name_,
+        string memory _symbol,
+        address _vault
+    ) BaseStrategy(_vault) {
         require(_asset == address(want), "Wrong token");
         asset = _asset;
         _name = _name_;
@@ -24,21 +28,17 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
 
     // ******** OVERRIDE THESE METHODS IN THE IMPLEMENTATION CONTRACT ************
 
-    
     function _invest(uint256 assets)
         internal
         virtual
         returns (uint256 invested);
 
-    
     function _freeFunds(uint256 amount)
         internal
         virtual
         returns (uint256 withdrawnAmount);
 
-    
     function _totalInvested() internal virtual returns (uint256);
-
 
     // ******** OVERRIDE THESE METHODS IN THE IMPLEMENTATION BASE CONTRACT ************
 
@@ -70,20 +70,23 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
             _profit = totalAssets - totalDebt;
         }
 
-        (uint256 _amountFreed, ) = liquidatePosition(_debtOutstanding + _profit);
-            
+        (uint256 _amountFreed, ) = liquidatePosition(
+            _debtOutstanding + _profit
+        );
+
         _debtPayment = Math.min(_debtOutstanding, _amountFreed);
-            
+
         //Adjust profit in case we had any losses from liquidatePosition
-        _profit = _amountFreed - _debtPayment;   
+        _profit = _amountFreed - _debtPayment;
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
         uint256 looseWant = want.balanceOf(address(this));
-        
-        // we still should call invest even if 0 for potential tend calls
-        _invest(looseWant > _debtOutstanding ? looseWant - _debtOutstanding : 0);
 
+        // we still should call invest even if 0 for potential tend calls
+        _invest(
+            looseWant > _debtOutstanding ? looseWant - _debtOutstanding : 0
+        );
     }
 
     function liquidatePosition(uint256 _amountNeeded)
@@ -93,7 +96,7 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
     {
         uint256 looseWant = want.balanceOf(address(this));
 
-        if(looseWant < _amountNeeded) {
+        if (looseWant < _amountNeeded) {
             _freeFunds(_amountNeeded - looseWant);
         }
 
@@ -112,8 +115,6 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
         _freeFunds(type(uint256).max);
         return want.balanceOf(address(this));
     }
-
-    
 
     function prepareMigration(address _newStrategy) internal override {
         _freeFunds(type(uint256).max);

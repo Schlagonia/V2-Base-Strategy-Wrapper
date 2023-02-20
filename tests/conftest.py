@@ -41,8 +41,9 @@ def keeper(accounts):
 @pytest.fixture
 def token(weth):
     yield weth
-    #token_address = "0x6b175474e89094c44da98b954eedeac495271d0f"  # this should be the address of the ERC-20 used by the strategy/vault (DAI)
-    #yield Contract(token_address)
+    # token_address = "0x6b175474e89094c44da98b954eedeac495271d0f"  # this should be the address of the ERC-20 used by the strategy/vault (DAI)
+    # yield Contract(token_address)
+
 
 @pytest.fixture
 def whale(accounts):
@@ -50,10 +51,11 @@ def whale(accounts):
     # it impersonate an exchange address to use it's funds.
     yield accounts.at("0x030bA81f1c18d280636F32af80b9AAd02Cf0854e", force=True)
 
+
 @pytest.fixture
 def amount(token, user, whale):
     amount = 100 * 10 ** token.decimals()
-    
+
     token.transfer(user, amount, {"from": whale})
     yield amount
 
