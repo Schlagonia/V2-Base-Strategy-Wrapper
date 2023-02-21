@@ -7,9 +7,10 @@ pragma experimental ABIEncoderV2;
 // These are the core Yearn libraries
 import {BaseStrategy, StrategyParams} from "@yearnvaults/contracts/BaseStrategy.sol";
 
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-abstract contract BaseStrategyWrapper is BaseStrategy {
+abstract contract BaseStrategyAdapter is BaseStrategy {
     address internal asset;
     string internal _name;
     string public symbol;
@@ -26,28 +27,59 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
         symbol = _symbol;
     }
 
-    // ******** OVERRIDE THESE METHODS IN THE IMPLEMENTATION CONTRACT ************
+    // ******** OVERRIDE THESE METHODS IN THE IMPLEMENTATION CONTRACT ************ \\
 
-    function _invest(uint256 assets)
+    /*//////////////////////////////////////////////////////////////
+                    NEEDED TO OVERRIDEN BY STRATEGIST
+    //////////////////////////////////////////////////////////////*/
+
+    function _invest(uint256 assets, bool _reported)
         internal
-        virtual
-        returns (uint256 invested);
+        virtual;
 
     function _freeFunds(uint256 amount)
         internal
-        virtual
-        returns (uint256 withdrawnAmount);
+        virtual;
 
     function _totalInvested() internal virtual returns (uint256);
 
-    // ******** OVERRIDE THESE METHODS IN THE IMPLEMENTATION BASE CONTRACT ************
+    /*//////////////////////////////////////////////////////////////
+                    OPTIONAL TO OVERRIDE BY STRATEGIST
+    //////////////////////////////////////////////////////////////*/
+
+    function maxDeposit(
+        address _owner
+    ) external view virtual returns (uint256) {
+        return type(uint256).max;
+    }
+
+    function maxMint(
+        address _owner
+    ) external view virtual returns (uint256) {
+        return type(uint256).max;
+    }
+
+    function maxWithdraw(address _owner)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
+        return vault.strategies(address(this)).totalDebt;
+    }
+
+    function maxRedeem(address _owner) external view virtual returns (uint256) {
+        return vault.strategies(address(this)).totalDebt;
+    }
+
+    // ******** BASE STRATEGY FUNCTIONS TO ROUTE TO V3 IMPLEMENTATION ************ \\
 
     function name() external view override returns (string memory) {
         return _name;
     }
 
     function estimatedTotalAssets() public view override returns (uint256) {
-        return want.balanceOf(address(this));
+        return vault.strategies(address(this)).totalDebt;
     }
 
     function prepareReturn(uint256 _debtOutstanding)
@@ -59,7 +91,8 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
             uint256 _debtPayment
         )
     {
-        uint256 totalAssets = _totalInvested();
+        // _totalInvested should account for all funds the strategy curently has
+        uint256 totalAssets = _totalInvested(); 
         uint256 totalDebt = vault.strategies(address(this)).totalDebt;
 
         if (totalDebt > totalAssets) {
@@ -84,8 +117,9 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
         uint256 looseWant = want.balanceOf(address(this));
 
         // we still should call invest even if 0 for potential tend calls
+        // adjust position should always be safe so we set _reported == true
         _invest(
-            looseWant > _debtOutstanding ? looseWant - _debtOutstanding : 0
+            looseWant > _debtOutstanding ? looseWant - _debtOutstanding : 0, true
         );
     }
 
@@ -112,12 +146,12 @@ abstract contract BaseStrategyWrapper is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        _freeFunds(type(uint256).max);
+        _freeFunds(vault.strategies(address(this)).totalDebt);
         return want.balanceOf(address(this));
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        _freeFunds(type(uint256).max);
+        _freeFunds(vault.strategies(address(this)).totalDebt);
     }
 
     // Override this to add all tokens/tokenized positions this contract manages
