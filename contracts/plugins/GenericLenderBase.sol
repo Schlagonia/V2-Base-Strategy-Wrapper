@@ -25,7 +25,7 @@ interface IBaseStrategy {
 
     function harvest() external;
 
-    function strategist() external view returns(address);
+    function strategist() external view returns (address);
 
     function management() external view returns (address);
 }
@@ -56,20 +56,32 @@ abstract contract GenericLenderBase is IGenericLender {
         want.safeApprove(_strategy, type(uint256).max);
     }
 
-    function initialize(address _strategy, string memory _name) external virtual {
+    function initialize(address _strategy, string memory _name)
+        external
+        virtual
+    {
         _initialize(_strategy, _name);
     }
 
-    function _clone(address _strategy, string memory _name) internal returns (address newLender) {
+    function _clone(address _strategy, string memory _name)
+        internal
+        returns (address newLender)
+    {
         // Copied from https://github.com/optionality/clone-factory/blob/master/contracts/CloneFactory.sol
         bytes20 addressBytes = bytes20(address(this));
 
         assembly {
             // EIP-1167 bytecode
             let clone_code := mload(0x40)
-            mstore(clone_code, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(
+                clone_code,
+                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
+            )
             mstore(add(clone_code, 0x14), addressBytes)
-            mstore(add(clone_code, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+            mstore(
+                add(clone_code, 0x28),
+                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
+            )
             newLender := create(0, clone_code, 0x37)
         }
 
@@ -83,16 +95,22 @@ abstract contract GenericLenderBase is IGenericLender {
 
     function sweep(address _token) external virtual override management {
         address[] memory _protectedTokens = protectedTokens();
-        for (uint256 i; i < _protectedTokens.length; i++) require(_token != _protectedTokens[i], "!protected");
+        for (uint256 i; i < _protectedTokens.length; i++)
+            require(_token != _protectedTokens[i], "!protected");
 
-        IERC20(_token).safeTransfer(vault.governance(), IERC20(_token).balanceOf(address(this)));
+        IERC20(_token).safeTransfer(
+            vault.governance(),
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 
     function protectedTokens() internal view virtual returns (address[] memory);
 
     modifier management() {
         require(
-            msg.sender == address(strategy) || msg.sender == vault.governance() || msg.sender == IBaseStrategy(strategy).strategist(),
+            msg.sender == address(strategy) ||
+                msg.sender == vault.governance() ||
+                msg.sender == IBaseStrategy(strategy).strategist(),
             "!management"
         );
         _;

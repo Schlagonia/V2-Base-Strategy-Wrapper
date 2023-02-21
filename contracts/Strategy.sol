@@ -7,7 +7,6 @@ import {BaseStrategyAdapter, ERC20} from "./BaseStrategyAdapter.sol";
 //import "../interfaces/<protocol>/<Interface>.sol";
 
 contract Strategy is BaseStrategyAdapter {
-
     constructor(address _asset, address _vault)
         BaseStrategyAdapter(_asset, "Strategy Example", "tsSTGY", _vault)
     {}
@@ -24,10 +23,7 @@ contract Strategy is BaseStrategyAdapter {
     // @param _amount, The amount of 'asset' that should be invested.
     // @param _reported, Bool repersenting if this is a post report _invest call
     */
-    function _invest(uint256 _amount, bool _reported)
-        internal
-        override
-    {
+    function _invest(uint256 _amount, bool _reported) internal override {
         // TODO: implement deposit logice EX:
         //
         //      lendingpool.deposit(asset, _amount ,0);
@@ -40,10 +36,7 @@ contract Strategy is BaseStrategyAdapter {
     // NOTE: The amount of 'asset' that is already loose has already been accounted for
     // @param _amount, The amount of 'asset' to be freed up
     */
-    function _freeFunds(uint256 _amount)
-        internal
-        override
-    {
+    function _freeFunds(uint256 _amount) internal override {
         // TODO: implement withdraw logic EX:
         //
         //      lendingPool.withdraw(asset, _amount);

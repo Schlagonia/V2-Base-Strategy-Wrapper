@@ -17,7 +17,10 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
 
     modifier onlyKeepers() {
         require(
-            msg.sender == address(keeper) || msg.sender == address(strategy) || msg.sender == vault.governance() || msg.sender == IBaseStrategy(strategy).strategist(),
+            msg.sender == address(keeper) ||
+                msg.sender == address(strategy) ||
+                msg.sender == vault.governance() ||
+                msg.sender == IBaseStrategy(strategy).strategist(),
             "!keepers"
         );
         _;
@@ -40,7 +43,12 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
         keeper = _keeper;
     }
 
-    function withdraw(uint256 amount) external override management returns (uint256) {
+    function withdraw(uint256 amount)
+        external
+        override
+        management
+        returns (uint256)
+    {
         uint256 total = _nav();
         uint256 looseBalance = want.balanceOf(address(this));
 
@@ -63,13 +71,17 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
 
     //emergency withdraw. sends balance plus amount to governance
     //Pass in uint256.max to withdraw everything
-    function emergencyWithdraw(uint256 amount) external override onlyGovernance {
+    function emergencyWithdraw(uint256 amount)
+        external
+        override
+        onlyGovernance
+    {
         //dont care about errors here. we want to exit what we can
         _freeFunds(amount);
 
         want.safeTransfer(vault.governance(), want.balanceOf(address(this)));
     }
-  
+
     function deposit() external override management {
         uint256 balance = want.balanceOf(address(this));
         _invest(balance, true);
@@ -86,14 +98,18 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
         return _nav() > dust;
     }
 
-    function aprAfterDebtChange(int256 delta) public view virtual returns (uint256) {}
+    function aprAfterDebtChange(int256 delta)
+        public
+        view
+        virtual
+        returns (uint256)
+    {}
 
     function nav() external view override returns (uint256) {
         return _nav();
     }
 
-    function _nav() internal view virtual returns (uint256) {
-    }
+    function _nav() internal view virtual returns (uint256) {}
 
     function apr() external view override returns (uint256) {
         return _apr();
@@ -103,11 +119,21 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
         return aprAfterDebtChange(0);
     }
 
-    function aprAfterDeposit(uint256 amount) external view override returns (uint256) {
+    function aprAfterDeposit(uint256 amount)
+        external
+        view
+        override
+        returns (uint256)
+    {
         aprAfterDebtChange(int256(amount));
     }
 
-    function protectedTokens() internal view override returns (address[] memory) {
+    function protectedTokens()
+        internal
+        view
+        override
+        returns (address[] memory)
+    {
         address[] memory protected = new address[](1);
         protected[0] = address(want);
         return protected;
@@ -119,13 +145,9 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
                     NEEDED TO OVERRIDEN BY STRATEGIST
     //////////////////////////////////////////////////////////////*/
 
-    function _invest(uint256 assets, bool _reported)
-        internal
-        virtual;
+    function _invest(uint256 assets, bool _reported) internal virtual;
 
-    function _freeFunds(uint256 amount)
-        internal
-        virtual;
+    function _freeFunds(uint256 amount) internal virtual;
 
     function _totalInvested() internal virtual returns (uint256);
 
@@ -134,16 +156,17 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
     //////////////////////////////////////////////////////////////*/
 
     function _tend() internal virtual {}
-    
-    function maxDeposit(
-        address _owner
-    ) external view virtual returns (uint256) {
+
+    function maxDeposit(address _owner)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
         return type(uint256).max;
     }
 
-    function maxMint(
-        address _owner
-    ) external view virtual returns (uint256) {
+    function maxMint(address _owner) external view virtual returns (uint256) {
         return type(uint256).max;
     }
 
@@ -159,5 +182,4 @@ abstract contract GenericLenderAdapter is GenericLenderBase {
     function maxRedeem(address _owner) external view virtual returns (uint256) {
         return vault.strategies(address(this)).totalDebt;
     }
-
 }

@@ -7,7 +7,6 @@ import {GenericLenderAdapter, ERC20} from "./GenericLenderAdapter.sol";
 //import "../interfaces/<protocol>/<Interface>.sol";
 
 contract GenericLenderExample is GenericLenderAdapter {
-
     constructor(address _asset, address _strategy)
         GenericLenderAdapter(_asset, "Strategy Example", "tsSTGY", _strategy)
     {
@@ -18,8 +17,7 @@ contract GenericLenderExample is GenericLenderAdapter {
         _initialize();
     }
 
-    function _initialize() internal {
-    }
+    function _initialize() internal {}
 
     // NOTE: Should use the 'asset' variable to get the address of the vaults token rather than 'want'
 
@@ -31,10 +29,7 @@ contract GenericLenderExample is GenericLenderAdapter {
     // @param _amount, The amount of 'asset' that should be invested.
     // @param _reported, Bool repersenting if this is a post report _invest call
     */
-    function _invest(uint256 _amount, bool _reported)
-        internal
-        override
-    {
+    function _invest(uint256 _amount, bool _reported) internal override {
         // TODO: implement deposit logice EX:
         //
         //      lendingpool.deposit(asset, _amount ,0);
@@ -47,10 +42,7 @@ contract GenericLenderExample is GenericLenderAdapter {
     // NOTE: The amount of 'asset' that is already loose has already been accounted for
     // @param _amount, The amount of 'asset' to be freed up
     */
-    function _freeFunds(uint256 _amount)
-        internal
-        override
-    {
+    function _freeFunds(uint256 _amount) internal override {
         // TODO: implement withdraw logic EX:
         //
         //      lendingPool.withdraw(asset, _amount);
@@ -81,11 +73,14 @@ contract GenericLenderExample is GenericLenderAdapter {
                    NORMAL GENLENDER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function aprAfterDebtChange(int256 delta) public view override returns (uint256) {
-    }
+    function aprAfterDebtChange(int256 delta)
+        public
+        view
+        override
+        returns (uint256)
+    {}
 
-    function _nav() internal view override returns (uint256) {
-    }
+    function _nav() internal view override returns (uint256) {}
 
     function weightedApr() external view override returns (uint256) {
         uint256 a = _apr();

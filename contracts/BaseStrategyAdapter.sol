@@ -39,13 +39,9 @@ abstract contract BaseStrategyAdapter is BaseStrategy {
                     NEEDED TO OVERRIDEN BY STRATEGIST
     //////////////////////////////////////////////////////////////*/
 
-    function _invest(uint256 assets, bool _reported)
-        internal
-        virtual;
+    function _invest(uint256 assets, bool _reported) internal virtual;
 
-    function _freeFunds(uint256 amount)
-        internal
-        virtual;
+    function _freeFunds(uint256 amount) internal virtual;
 
     function _totalInvested() internal virtual returns (uint256);
 
@@ -55,15 +51,16 @@ abstract contract BaseStrategyAdapter is BaseStrategy {
 
     function _tend() internal virtual {}
 
-    function maxDeposit(
-        address _owner
-    ) external view virtual returns (uint256) {
+    function maxDeposit(address _owner)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
         return type(uint256).max;
     }
 
-    function maxMint(
-        address _owner
-    ) external view virtual returns (uint256) {
+    function maxMint(address _owner) external view virtual returns (uint256) {
         return type(uint256).max;
     }
 
@@ -100,7 +97,7 @@ abstract contract BaseStrategyAdapter is BaseStrategy {
         )
     {
         // _totalInvested should account for all funds the strategy curently has
-        uint256 totalAssets = _totalInvested(); 
+        uint256 totalAssets = _totalInvested();
         uint256 totalDebt = vault.strategies(address(this)).totalDebt;
 
         if (totalDebt > totalAssets) {
@@ -127,7 +124,8 @@ abstract contract BaseStrategyAdapter is BaseStrategy {
         // we still should call invest even if 0 for potential tend calls
         // adjust position should always be safe so we set _reported == true
         _invest(
-            looseWant > _debtOutstanding ? looseWant - _debtOutstanding : 0, true
+            looseWant > _debtOutstanding ? looseWant - _debtOutstanding : 0,
+            true
         );
     }
 
