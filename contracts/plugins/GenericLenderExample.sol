@@ -1,20 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
 
-import {BaseStrategyAdapter, ERC20} from "./BaseStrategyAdapter.sol";
+import {GenericLenderAdapter, ERC20} from "./GenericLenderAdapter.sol";
 
 // Import interfaces for many popular DeFi projects, or add your own!
 //import "../interfaces/<protocol>/<Interface>.sol";
 
-contract Strategy is BaseStrategyAdapter {
+contract GenericLenderExample is GenericLenderAdapter {
 
-    constructor(address _asset, address _vault)
-        BaseStrategyAdapter(_asset, "Strategy Example", "tsSTGY", _vault)
-    {}
+    constructor(address _asset, address _strategy)
+        GenericLenderAdapter(_asset, "Strategy Example", "tsSTGY", _strategy)
+    {
+        _initialize();
+    }
+
+    function initialize() external {
+        _initialize();
+    }
+
+    function _initialize() internal {
+    }
 
     // NOTE: Should use the 'asset' variable to get the address of the vaults token rather than 'want'
-
-    // NOTE: To implement permissioned functions you can use the onlyManagement and onlyKeepers modifiers
 
     /** 
     // @dev Should invest up to '_amount' of 'asset' and return the actual amount that was invested
@@ -71,6 +78,21 @@ contract Strategy is BaseStrategyAdapter {
     //      deployment for time based harvest cycle which is how V3 should operate
 
     /*//////////////////////////////////////////////////////////////
+                   NORMAL GENLENDER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function aprAfterDebtChange(int256 delta) public view override returns (uint256) {
+    }
+
+    function _nav() internal view override returns (uint256) {
+    }
+
+    function weightedApr() external view override returns (uint256) {
+        uint256 a = _apr();
+        return a * _nav();
+    }
+
+    /*//////////////////////////////////////////////////////////////
                     OPTIONAL TO OVERRIDE BY STRATEGIST
     //////////////////////////////////////////////////////////////*/
 
@@ -82,7 +104,7 @@ contract Strategy is BaseStrategyAdapter {
     //      This will do no accounting and have no effect on any pps of the vault till report() is called.
     //      Will need to override tendTrigger() for this to ever be called
     // NOTE: This should not reinvest any amount of 'asset' that is loose at the begining of the call
-    function _tend() internal override {}
+    function _tend() internal virtual {}
 
 
     // NOTE: these functions are to give strategists the ability to override them for high risk or illiquid strategies.

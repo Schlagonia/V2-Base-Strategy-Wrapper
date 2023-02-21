@@ -15,6 +15,12 @@ abstract contract BaseStrategyAdapter is BaseStrategy {
     string internal _name;
     string public symbol;
 
+    // forward the V3 modifier to the V2 version
+    modifier onlyManagement() {
+        _onlyAuthorized();
+        _;
+    }
+
     constructor(
         address _asset,
         string memory _name_,
@@ -46,6 +52,8 @@ abstract contract BaseStrategyAdapter is BaseStrategy {
     /*//////////////////////////////////////////////////////////////
                     OPTIONAL TO OVERRIDE BY STRATEGIST
     //////////////////////////////////////////////////////////////*/
+
+    function _tend() internal virtual {}
 
     function maxDeposit(
         address _owner
